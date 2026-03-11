@@ -15,6 +15,7 @@ public class TowerBase : MonoBehaviour
     [Space]
     [SerializeField][ReadOnly] private List<TowerPlacePoint> _towerPlacePointsActive;
     [SerializeField][ReadOnly] private List<Road> _roadsActive;
+    [SerializeField][ReadOnly] private List<Tower> _towersActive;
 
     [Space]
     [SerializeField] private ChildrenCenterAligner _towerPlacePointsAligner;
@@ -105,6 +106,8 @@ public class TowerBase : MonoBehaviour
             tower.transform.position = towersParent.position;
             tower.transform.SetParent(towersParent);
             towerData.Road.AddTower(tower);
+
+            _towersActive.Add(tower);
         }
     }
 
@@ -148,20 +151,29 @@ public class TowerBase : MonoBehaviour
         tower.transform.SetParent(_towerPoolParent);
         tower.transform.position = Vector3.zero;
         tower.transform.localRotation = Quaternion.identity;
+
+        _towersActive.Remove(tower);
     }
 
     public void Release()
     {
-        foreach (var tower in _towerPlacePointsAll)
+        foreach (var place in _towerPlacePointsAll)
         {
-            tower.Release();
-            tower.Transform.gameObject.SetActive(false);
+            place.Release();
+            place.Transform.gameObject.SetActive(false);
         }
         foreach (var road in _roadsAll)
         {
             road.Release();
             road.gameObject.SetActive(false);
         }
+
+        List<Tower> towersToRelease = new List<Tower>(_towersActive);
+        for (int i = 0; i < towersToRelease.Count; i++)
+        {
+            ReleaseTower(towersToRelease[i]);
+        }
+        towersToRelease.Clear();
     }
 
 

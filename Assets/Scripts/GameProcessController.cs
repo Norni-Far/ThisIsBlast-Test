@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using NaughtyAttributes;
 using UnityEngine;
 
 public class GameProcessController : MonoBehaviour
@@ -7,12 +8,18 @@ public class GameProcessController : MonoBehaviour
     [SerializeField] private LinesController _linesController;
     [SerializeField] private TowerBase _towerBase;
 
-    public void StartGame()
+    public void StartGame(int levelIndex)
     {
         _linesController.ReleaseLines();
-        _linesController.FillLinesData(_soLevelData.LevelData[0].LineFillData);
+        _linesController.FillLinesData(_soLevelData.LevelData[levelIndex].LineFillData);
 
         _towerBase.Release();
-        _towerBase.PrepareLevelData(_soLevelData.LevelData[0]);
+        _towerBase.PrepareLevelData(_soLevelData.LevelData[levelIndex]);
+    }
+
+    [Button]
+    public void RestartGame()
+    {
+        StartGame(0);
     }
 }

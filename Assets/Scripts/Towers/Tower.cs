@@ -160,6 +160,8 @@ public class Tower : AMoveable
 
         yield return StartCoroutine(MoveToTargetCoroutine(null, targetPosition));
 
+        _emptyTowerPlacePoint.Release();
+
         targetPosition = new Vector3(transform.position.x + targetXPosition, transform.position.y, transform.position.z);
 
         yield return StartCoroutine(MoveToTargetCoroutine(null, targetPosition));
@@ -172,9 +174,8 @@ public class Tower : AMoveable
         return IndexPositionOnRoad == 0;
     }
 
-    private void ReleaseTower()
+    public void ReleaseTower()
     {
-        _emptyTowerPlacePoint.Release();
         _emptyTowerPlacePoint = null;
         _moveToNewPositionCoroutine = null;
         _attackCoroutine = null;

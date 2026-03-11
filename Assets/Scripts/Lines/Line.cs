@@ -23,14 +23,15 @@ public class Line : MonoBehaviour
 
     private Coroutine _moveLineCoroutine;
 
-    private void Start()
+    private void Awake()
     {
+        _startLineYPosition = _lineTransform.position.y;
         UpdateStartLineYPosition();
     }
 
     private void UpdateStartLineYPosition()
     {
-        _startLineYPosition = _lineTransform.position.y;
+        _lineTransform.position = new Vector3(_lineTransform.position.x, _startLineYPosition, _lineTransform.position.z);
         _currentLineYPosition = _startLineYPosition;
     }
 
