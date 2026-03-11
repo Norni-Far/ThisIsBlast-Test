@@ -9,6 +9,7 @@ public class Bullet : AMoveable
     private Coroutine _moveToTargetCoroutine;
     public void SetTarget(Cube cube)
     {
+        ClearTrail();
         if (_moveToTargetCoroutine == null)
         {
             _moveToTargetCoroutine = StartCoroutine(StartMoveToTargetCoroutine(cube));
@@ -17,9 +18,13 @@ public class Bullet : AMoveable
 
     private IEnumerator StartMoveToTargetCoroutine(Cube target)
     {
-        yield return StartCoroutine(MoveToTargetCoroutine(target.GetTransform(), null, _offsedFromTarget));
+        yield return StartCoroutine(MoveToTargetCoroutine(target.GetTransform(), false, null, _offsedFromTarget));
 
         Debug.Log("Bullet reached target");
+
+        EffectShower effectShower = TowerBase.Instance.GetEffectShower();
+        effectShower.transform.position = new Vector3(target.GetTransform().position.x, target.GetTransform().position.y, target.GetTransform().position.z - 0.4f);
+        effectShower.ShowEffect();
 
         if (transform.position.x > target.GetTransform().position.x)
         {
@@ -34,9 +39,10 @@ public class Bullet : AMoveable
         _moveToTargetCoroutine = null;
         gameObject.SetActive(false);
         TowerBase.Instance.ReleaseBullet(this);
+        ClearTrail();
     }
 
-    public void ClearTrail()
+    private void ClearTrail()
     {
         _trailRenderer.Clear();
     }

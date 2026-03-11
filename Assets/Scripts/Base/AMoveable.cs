@@ -6,7 +6,7 @@ public abstract class AMoveable : MonoBehaviour
     [SerializeField] private float _moveSpeed;
     [SerializeField] private float _rotateSpeed;
 
-    public IEnumerator MoveToTargetCoroutine(Transform targetTransform, Vector3? targetPosition = null, float offsetFromTarget = 0.001f)
+    public IEnumerator MoveToTargetCoroutine(Transform targetTransform, bool isNeedToRotate = true, Vector3? targetPosition = null, float offsetFromTarget = 0.001f)
     {
         float z = transform.position.z;
 
@@ -36,7 +36,10 @@ public abstract class AMoveable : MonoBehaviour
             Vector3 current = transform.position;
             Vector2 currentXY = new Vector2(current.x, current.y);
             Vector2 nextXY = GetNextPositionTowardsTarget(currentXY, targetXY);
-            RotateTowardsTarget(currentXY, nextXY);
+            if (isNeedToRotate)
+            {
+                RotateTowardsTarget(currentXY, nextXY);
+            }
 
             transform.position = new Vector3(nextXY.x, nextXY.y, z);
 

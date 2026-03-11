@@ -12,12 +12,16 @@ public class Tower : AMoveable
     [SerializeField] private float _attackInterval = 1f;
     [SerializeField] private float _waitIntervalBeforeAttack = 1f;
     [SerializeField] private float _bulletOffsetZ = 1f;
+    [SerializeField] private int _maxCountMissAttack = 4;
 
     [Space]
     [SerializeField][ReadOnly] private int IndexPositionOnRoad;
     [SerializeField][ReadOnly] private int CountBullets;
     [SerializeField][ReadOnly] private TowerData _towerData;
     [SerializeField][ReadOnly] private int _lastTargetLineIndex = 0;
+    [SerializeField][ReadOnly] private int _countMissAttack = 0;
+    [SerializeField][ReadOnly] private bool _iCantAttack = true;
+
 
     private TowerPlacePoint _emptyTowerPlacePoint;
     private Coroutine _moveToNewPositionCoroutine;
@@ -42,9 +46,15 @@ public class Tower : AMoveable
         _countBulletsText.text = CountBullets.ToString();
     }
 
+
     [Button]
     public void UpdatePosition()
     {
+        if (_moveToNewPositionCoroutine != null)
+        {
+            return;
+        }
+
         Transform targetPosition;
         TowerPlacePoint emptyTowerPlacePoint = TowerBase.Instance.GetEmptyTowerPlacePoint();
 
@@ -58,7 +68,7 @@ public class Tower : AMoveable
             else
             {
                 _emptyTowerPlacePoint = emptyTowerPlacePoint;
-                targetPosition = emptyTowerPlacePoint.Transform;
+                targetPosition = emptyTowerPlacePoint.GetTransform();
                 _towerData.Road.RemoveTower(this);
                 _towerData.Road.UpdateAllTowers();
             }
@@ -88,7 +98,7 @@ public class Tower : AMoveable
 
         if (emptyTowerPlacePoint != null)
         {
-            emptyTowerPlacePoint.Tower = this;
+            emptyTowerPlacePoint.SetTower(this);
         }
         float z = transform.position.z;
 
@@ -102,12 +112,19 @@ public class Tower : AMoveable
         {
             if (_attackCoroutine != null)
             {
-                Debug.LogError("Attack coroutine is already started");
+                StopCoroutine(_attackCoroutine);
             }
-            else
-            {
-                _attackCoroutine = StartCoroutine(AttackCoroutine());
-            }
+
+            _attackCoroutine = StartCoroutine(AttackCoroutine());
+
+            // if (_attackCoroutine != null)
+            // {
+            //     Debug.LogError("Attack coroutine is already started");
+            // }
+            // else
+            // {
+            //     _attackCoroutine = StartCoroutine(AttackCoroutine());
+            // }
         }
 
         _moveToNewPositionCoroutine = null;
@@ -124,11 +141,21 @@ public class Tower : AMoveable
             if (targetCube == null)
             {
                 Debug.Log("<color=red>Target cube not found</color>");
+                _countMissAttack++;
+
+                if (_countMissAttack >= _maxCountMissAttack)
+                {
+                    _countMissAttack = _maxCountMissAttack;
+                    _iCantAttack = false;
+                }
+
+                RotateTowardsTarget(transform.position, transform.position + new Vector3(0, 1, 0));
                 yield return new WaitForSeconds(_waitIntervalBeforeAttack);
                 continue;
             }
             else
             {
+                _iCantAttack = true;
                 Attack(targetCube);
                 UpdateCountBulletsText();
             }
@@ -158,13 +185,13 @@ public class Tower : AMoveable
 
         Vector3 targetPosition = new Vector3(transform.position.x, transform.position.y + 0.7f, transform.position.z);
 
-        yield return StartCoroutine(MoveToTargetCoroutine(null, targetPosition));
+        yield return StartCoroutine(MoveToTargetCoroutine(null, true, targetPosition));
 
         _emptyTowerPlacePoint.Release();
 
         targetPosition = new Vector3(transform.position.x + targetXPosition, transform.position.y, transform.position.z);
 
-        yield return StartCoroutine(MoveToTargetCoroutine(null, targetPosition));
+        yield return StartCoroutine(MoveToTargetCoroutine(null, true, targetPosition));
 
         ReleaseTower();
     }
@@ -174,10 +201,22 @@ public class Tower : AMoveable
         return IndexPositionOnRoad == 0;
     }
 
+    public bool IsICantAttack()
+    {
+        return _iCantAttack;
+    }
+
     public void ReleaseTower()
     {
+        _countMissAttack = 0;
+        _iCantAttack = true;
         _emptyTowerPlacePoint = null;
         _moveToNewPositionCoroutine = null;
+
+        if (_attackCoroutine != null)
+        {
+            StopCoroutine(_attackCoroutine);
+        }
         _attackCoroutine = null;
 
         TowerBase.Instance.ReleaseTower(this);

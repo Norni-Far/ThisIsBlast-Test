@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using NaughtyAttributes;
@@ -27,11 +28,17 @@ public class TowerBase : MonoBehaviour
     [SerializeField] private Transform _towerPoolParent;
     [SerializeField] private Bullet _bulletPrefab;
     [SerializeField] private Transform _bulletsPoolParent;
+    [SerializeField] private EffectShower _effectShowerPrefab;
+    [SerializeField] private Transform _effectShowerPoolParent;
     [SerializeField] private int _poolTowerSize;
     [SerializeField] private int _poolBulletSize;
+    [SerializeField] private int _poolEffectShowerSize;
 
     private ObjectPool<Bullet> _bulletPool;
     private ObjectPool<Tower> _towerPool;
+    private ObjectPool<EffectShower> _effectShowerPool;
+
+    private Coroutine _checkLoseGameCoroutine;
 
     private void Awake()
     {
@@ -42,6 +49,7 @@ public class TowerBase : MonoBehaviour
     {
         _towerPool = PoolCreator.CreatePool(_towerPrefab, _towerPoolParent, _poolTowerSize, _poolTowerSize, OnGetTower);
         _bulletPool = PoolCreator.CreatePool(_bulletPrefab, _bulletsPoolParent, _poolBulletSize, _poolBulletSize, OnGetBullet);
+        _effectShowerPool = PoolCreator.CreatePool(_effectShowerPrefab, _effectShowerPoolParent, _poolEffectShowerSize, _poolEffectShowerSize, OnGetEffectShower);
     }
 
     #region Control Pool Objects
@@ -53,8 +61,12 @@ public class TowerBase : MonoBehaviour
 
     private void OnGetBullet(Bullet bullet)
     {
-        bullet.ClearTrail();
         bullet.gameObject.SetActive(true);
+    }
+
+    private void OnGetEffectShower(EffectShower effectShower)
+    {
+        effectShower.gameObject.SetActive(true);
     }
 
     #endregion
@@ -75,7 +87,7 @@ public class TowerBase : MonoBehaviour
 
         for (int i = 0; i < levelData.TowersPointCount; i++)
         {
-            Transform towerPlacePoint = _towerPlacePointsAll[i].Transform;
+            Transform towerPlacePoint = _towerPlacePointsAll[i].GetTransform();
             towerPlacePoint.gameObject.SetActive(true);
             _towerPlacePointsActive.Add(_towerPlacePointsAll[i]);
         }
@@ -91,6 +103,12 @@ public class TowerBase : MonoBehaviour
         _roadsAligner.AlignChildren();
 
         SetTowersOnRoads(levelData);
+
+        if (_checkLoseGameCoroutine != null)
+        {
+            StopCoroutine(_checkLoseGameCoroutine);
+        }
+        _checkLoseGameCoroutine = StartCoroutine(CheckLoseGame());
     }
 
     private void SetTowersOnRoads(LevelData levelData)
@@ -111,6 +129,29 @@ public class TowerBase : MonoBehaviour
         }
     }
 
+    private IEnumerator CheckLoseGame()
+    {
+        bool isLose = false;
+        while (isLose == false)
+        {
+            yield return new WaitForSeconds(0.5f);
+            isLose = true;
+
+            foreach (var tower in _towerPlacePointsActive)
+            {
+                if (tower.IsTowerICantAttackOrNull())
+                {
+                    isLose = false;
+                    break;
+                }
+            }
+        }
+
+        yield return new WaitForSeconds(1f);
+
+        GameProcessController.Instance.OnOutOfSpace();
+    }
+
     private TowerData GetTowerData(LineFillData lineFillData)
     {
         Road road = GetRoadWithMinCountTowers();
@@ -126,7 +167,7 @@ public class TowerBase : MonoBehaviour
 
     public TowerPlacePoint GetEmptyTowerPlacePoint()
     {
-        return _towerPlacePointsActive.FirstOrDefault(x => x.Tower == null);
+        return _towerPlacePointsActive.FirstOrDefault(x => x.IsEmpty());
     }
 
     private Road GetRoadWithMinCountTowers()
@@ -139,9 +180,19 @@ public class TowerBase : MonoBehaviour
         return _bulletPool.Get();
     }
 
+    public EffectShower GetEffectShower()
+    {
+        return _effectShowerPool.Get();
+    }
+
     public void ReleaseBullet(Bullet bullet)
     {
         _bulletPool.Release(bullet);
+    }
+
+    public void ReleaseEffectShower(EffectShower effectShower)
+    {
+        _effectShowerPool.Release(effectShower);
     }
 
     public void ReleaseTower(Tower tower)
@@ -160,7 +211,7 @@ public class TowerBase : MonoBehaviour
         foreach (var place in _towerPlacePointsAll)
         {
             place.Release();
-            place.Transform.gameObject.SetActive(false);
+            place.GetTransform().gameObject.SetActive(false);
         }
         foreach (var road in _roadsAll)
         {
@@ -174,6 +225,11 @@ public class TowerBase : MonoBehaviour
             ReleaseTower(towersToRelease[i]);
         }
         towersToRelease.Clear();
+
+        if (_checkLoseGameCoroutine != null)
+        {
+            StopCoroutine(_checkLoseGameCoroutine);
+        }
     }
 
 

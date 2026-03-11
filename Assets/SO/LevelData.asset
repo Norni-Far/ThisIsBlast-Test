@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   LevelData:
   - LevelNumber: 1
-    TowersPointCount: 4
+    TowersPointCount: 3
     RoadsCount: 3
     LineFillData:
     - CubeData:
@@ -44,4 +44,12 @@ MonoBehaviour:
     - CubeData:
         CubeType: 0
       LinesCount: 5
+      CubesCountOnLine: 10
+    - CubeData:
+        CubeType: 1
+      LinesCount: 2
+      CubesCountOnLine: 5
+    - CubeData:
+        CubeType: 3
+      LinesCount: 6
       CubesCountOnLine: 10

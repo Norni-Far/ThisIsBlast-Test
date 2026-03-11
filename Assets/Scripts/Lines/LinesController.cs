@@ -45,6 +45,21 @@ public class LinesController : MonoBehaviour
         cube.transform.SetParent(_cubesPoolParent);
         cube.transform.position = Vector3.zero;
         cube.gameObject.SetActive(false);
+
+        CheckEndGame();
+    }
+
+    private void CheckEndGame()
+    {
+        foreach (var line in _lines)
+        {
+            if (line.GetCubeByIndex(0) != null)
+            {
+                return;
+            }
+        }
+
+        GameProcessController.Instance.OnEndLevel(true);
     }
 
     public void FillLinesData(List<LineFillData> lineFillData)
@@ -78,6 +93,19 @@ public class LinesController : MonoBehaviour
             for (int i = lastLineIndex; i < _lines.Count; i++)
             {
                 var cube = _lines[i].GetCubeByIndex(x);
+
+                // if (x > 0)
+                // {
+                //     Cube previousCube = _lines[i].GetCubeByIndex(x - 1);
+                //     if (previousCube != null)
+                //     {
+                //         if (previousCube.GetCubeColor() != color)
+                //         {
+                //             lastLineIndex = 0;
+                //             return null;
+                //         }
+                //     }
+                // }
 
                 if (CheckCube(cube, color) != null)
                 {

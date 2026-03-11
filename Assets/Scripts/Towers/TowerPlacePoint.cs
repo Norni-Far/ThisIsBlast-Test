@@ -6,11 +6,36 @@ using UnityEngine;
 [Serializable]
 public class TowerPlacePoint : MonoBehaviour
 {
-    public Transform Transform;
-    [ReadOnly] public Tower Tower;
+    [SerializeField] private Transform _transform;
+    [SerializeField][ReadOnly] private Tower _tower;
+
+    public void SetTower(Tower tower)
+    {
+        _tower = tower;
+    }
+
+    public bool IsEmpty()
+    {
+        return _tower == null;
+    }
+
+    public Transform GetTransform()
+    {
+        return _transform;
+    }
+
+    public bool IsTowerICantAttackOrNull()
+    {
+        if (IsEmpty())
+        {
+            return true;
+        }
+
+        return _tower.IsICantAttack();
+    }
 
     public void Release()
     {
-        Tower = null;
+        _tower = null;
     }
 }

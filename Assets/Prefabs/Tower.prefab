@@ -51,10 +51,12 @@ MonoBehaviour:
   _rotateSpeed: 540
   _countBulletsText: {fileID: 105767016148881922}
   _meshRenderer: {fileID: 5834149687369618705}
+  _boxCollider: {fileID: 5922941483058129220}
   _soGameData: {fileID: 11400000, guid: bed4e8fcba2b38c4097737e39d57bce9, type: 2}
   _attackInterval: 0.05
   _waitIntervalBeforeAttack: 0.05
   _bulletOffsetZ: -0.3
+  _maxCountMissAttack: 4
   IndexPositionOnRoad: 0
   CountBullets: 0
   _towerData:
@@ -63,6 +65,8 @@ MonoBehaviour:
     CountBullets: 0
     Road: {fileID: 0}
   _lastTargetLineIndex: 0
+  _countMissAttack: 0
+  _iCantAttack: 1
 --- !u!65 &5922941483058129220
 BoxCollider:
   m_ObjectHideFlags: 0
