@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d421152e41f20114683b8f510eeaa328, type: 3}
+  m_Name: LevelData
+  m_EditorClassIdentifier: 
+  LevelData:
+  - LevelNumber: 1
+    TowersPointCount: 4
+    RoadsCount: 3
+    LineFillData:
+    - CubeData:
+        CubeType: 0
+      LinesCount: 3
+      CubesCountOnLine: 7
+    - CubeData:
+        CubeType: 1
+      LinesCount: 7
+      CubesCountOnLine: 7
+    - CubeData:
+        CubeType: 2
+      LinesCount: 3
+      CubesCountOnLine: 3
+    - CubeData:
+        CubeType: 3
+      LinesCount: 5
+      CubesCountOnLine: 5
+    - CubeData:
+        CubeType: 1
+      LinesCount: 2
+      CubesCountOnLine: 12
+    - CubeData:
+        CubeType: 2
+      LinesCount: 3
+      CubesCountOnLine: 8
+    - CubeData:
+        CubeType: 0
+      LinesCount: 5
+      CubesCountOnLine: 10

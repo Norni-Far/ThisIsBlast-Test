@@ -1,0 +1,44 @@
+# Игнорировать всё
+*
+
+# Исключить директории из игнорирования
+!*/
+
+# Исключить .cs файлы из игнорирования
+!*.cs
+
+# Игнорировать системные и временные каталоги Unity
+Library/
+Temp/
+Obj/
+Build/
+Builds/
+Logs/
+MemoryCaptures/
+
+# Игнорировать автогенерируемые файлы проекта (решения и проектные файлы IDE)
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.meta
+*.cashe
+
+# Игнорировать файлы кэша и вспомогательные файлы Unity
+*.pidb
+*.booproj
+*.svd
+*.prefab
+*.asset
+*.unitypackage
+*.mat
+*.unity
+*.shader
+*.anim
+*.terrainlayer
+*.brush
+*.cache
+*.ttf
