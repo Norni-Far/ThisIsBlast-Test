@@ -17,8 +17,11 @@ public class LinesController : MonoBehaviour
 
     [Space]
     [SerializeField][ReadOnly] private int _lastLineIndex = -1;
+    [SerializeField][ReadOnly] private int _maxLevelCubesCount = 0;
+    [SerializeField][ReadOnly] private int _currentLevelCubesCount = 0;
 
-    private ObjectPool<Cube> _poolObjects;
+    private ObjectPool<Cube> _cubePoolObjects;
+    private bool _isEndGame = false;
 
     private void Awake()
     {
@@ -27,7 +30,7 @@ public class LinesController : MonoBehaviour
 
     public void CreatePoolObjects()
     {
-        _poolObjects = PoolCreator.CreatePool(_cubePrefab, _cubesPoolParent, _poolSize, _poolSize, OnGetCube);
+        _cubePoolObjects = PoolCreator.CreatePool(_cubePrefab, _cubesPoolParent, _poolSize, _poolSize, OnGetCube);
     }
 
     #region Control Pool Objects
@@ -41,12 +44,15 @@ public class LinesController : MonoBehaviour
 
     public void ReleaseCube(Cube cube)
     {
-        _poolObjects.Release(cube);
+        _currentLevelCubesCount--;
+
+        _cubePoolObjects.Release(cube);
         cube.transform.SetParent(_cubesPoolParent);
         cube.transform.position = Vector3.zero;
         cube.gameObject.SetActive(false);
 
         CheckEndGame();
+        GameProcessController.Instance.OnSetProgressLevel(_maxLevelCubesCount, _currentLevelCubesCount);
     }
 
     private void CheckEndGame()
@@ -59,11 +65,20 @@ public class LinesController : MonoBehaviour
             }
         }
 
-        GameProcessController.Instance.OnEndLevel(true);
+        if (_isEndGame)
+        {
+            return;
+        }
+        _isEndGame = true;
+
+        GameProcessController.Instance.OnEndLevel();
     }
 
     public void FillLinesData(List<LineFillData> lineFillData)
     {
+        _maxLevelCubesCount = 0;
+        _currentLevelCubesCount = 0;
+
         foreach (var lineFill in lineFillData)
         {
             FillLine(lineFill);
@@ -77,11 +92,15 @@ public class LinesController : MonoBehaviour
             var line = GetNextLine();
             for (int j = 0; j < lineFillData.CubesCountOnLine; j++)
             {
-                var cube = _poolObjects.Get();
+                var cube = _cubePoolObjects.Get();
                 cube.SetCubeData(lineFillData.CubeData);
                 line.AddCube(cube);
+                _maxLevelCubesCount++;
             }
         }
+
+        _currentLevelCubesCount = _maxLevelCubesCount;
+        GameProcessController.Instance.OnSetProgressLevel(_maxLevelCubesCount, _currentLevelCubesCount);
     }
 
     public Cube GetNearestCube(CubeData.CubeColor color, ref int lastLineIndex)
@@ -94,18 +113,15 @@ public class LinesController : MonoBehaviour
             {
                 var cube = _lines[i].GetCubeByIndex(x);
 
-                // if (x > 0)
-                // {
-                //     Cube previousCube = _lines[i].GetCubeByIndex(x - 1);
-                //     if (previousCube != null)
-                //     {
-                //         if (previousCube.GetCubeColor() != color)
-                //         {
-                //             lastLineIndex = 0;
-                //             return null;
-                //         }
-                //     }
-                // }
+                if (_lines[i].GetCubeByIndex(0) != null && _lines[i].GetCubeByIndex(0).GetCubeColor() != color)
+                {
+                    continue;
+                }
+
+                if (HasLiveCubeAbove(_lines[i], x))
+                {
+                    continue;
+                }
 
                 if (CheckCube(cube, color) != null)
                 {
@@ -126,6 +142,25 @@ public class LinesController : MonoBehaviour
         }
 
         return null;
+    }
+
+    private bool HasLiveCubeAbove(Line line, int cubeIndex)
+    {
+        if (cubeIndex <= 0)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < cubeIndex; i++)
+        {
+            Cube cubeAbove = line.GetCubeByIndex(i);
+            if (cubeAbove != null && cubeAbove.IsLive)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private Cube CheckCube(Cube cube, CubeData.CubeColor color)
@@ -153,9 +188,23 @@ public class LinesController : MonoBehaviour
         return _lines[_lastLineIndex];
     }
 
+    public Line GetLine(int index)
+    {
+        if (index < 0 || index >= _lines.Count)
+        {
+            Debug.LogError($"Line with index {index} not found");
+            return null;
+        }
+
+        return _lines[index];
+    }
+
     public void ReleaseLines()
     {
+        _isEndGame = false;
         _lastLineIndex = -1;
+        _maxLevelCubesCount = 0;
+        _currentLevelCubesCount = 0;
 
         foreach (var line in _lines)
         {

@@ -39,6 +39,7 @@ public class TowerBase : MonoBehaviour
     private ObjectPool<EffectShower> _effectShowerPool;
 
     private Coroutine _checkLoseGameCoroutine;
+    private Coroutine _mergeTowersCoroutine;
 
     private void Awake()
     {
@@ -122,6 +123,7 @@ public class TowerBase : MonoBehaviour
 
             tower.SetData(towerData);
             tower.transform.position = towersParent.position;
+            tower.transform.localRotation = Quaternion.identity;
             tower.transform.SetParent(towersParent);
             towerData.Road.AddTower(tower);
 
@@ -132,24 +134,166 @@ public class TowerBase : MonoBehaviour
     private IEnumerator CheckLoseGame()
     {
         bool isLose = false;
-        while (isLose == false)
+
+        int countIterations = 0;
+        const int maxCountIterations = 4;
+
+        while (isLose == false || countIterations < maxCountIterations)
         {
-            yield return new WaitForSeconds(0.5f);
             isLose = true;
+
+            yield return new WaitForEndOfFrame();
 
             foreach (var tower in _towerPlacePointsActive)
             {
                 if (tower.IsTowerICantAttackOrNull())
                 {
+                    countIterations = 0;
                     isLose = false;
                     break;
                 }
             }
+
+            yield return new WaitForSeconds(0.2f);
+
+            countIterations++;
+            CheckHasThreeTowersonFirePlacePoint(ref countIterations);
         }
 
         yield return new WaitForSeconds(1f);
 
         GameProcessController.Instance.OnOutOfSpace();
+    }
+
+    private void CheckHasThreeTowersonFirePlacePoint(ref int countIterations)
+    {
+        Debug.Log("<color=yellow>CheckHasThreeTowersonFirePlacePoint</color>");
+        List<TowerPlacePoint> towersOnPoints = _towerPlacePointsActive.Where(x => x.IsTowerICantAttackOrNull() == false).ToList();
+
+        if (towersOnPoints.Count < 3)
+        {
+            Debug.Log("<color=yellow> return CheckHasThreeTowersonFirePlacePoint: less than 3 towers</color>");
+            return;
+        }
+
+        Dictionary<CubeData.CubeColor, int> towersGroupedByColor = new Dictionary<CubeData.CubeColor, int>();
+
+        foreach (var towerPlacePoint in towersOnPoints)
+        {
+            CubeData.CubeColor color = towerPlacePoint.GetTower().GetColor();
+            if (towersGroupedByColor.ContainsKey(color))
+            {
+                towersGroupedByColor[color]++;
+            }
+            else
+            {
+                towersGroupedByColor.Add(color, 1);
+            }
+        }
+
+        Debug.Log($"<color=yellow>CheckHasThreeTowersonFirePlacePoint: towers grouped by color {towersGroupedByColor.Count}</color>");
+
+        Dictionary<CubeData.CubeColor, int> filteredTowers = towersGroupedByColor
+            .Where(pair => pair.Value >= 3)
+            .ToDictionary(pair => pair.Key, pair => pair.Value);
+
+        Debug.Log($"<color=yellow>CheckHasThreeTowersonFirePlacePoint: filtered towers {filteredTowers.Count}</color>");
+
+        if (filteredTowers.Count == 0)
+        {
+            Debug.Log("<color=yellow> return CheckHasThreeTowersonFirePlacePoint: no filtered towers</color>");
+            return;
+        }
+        else
+        {
+            if (filteredTowers.Count == 1)
+            {
+                countIterations = 0;
+                Debug.Log("<color=green> I can see 3 towers, can merge</color>");
+
+                if (_mergeTowersCoroutine == null)
+                {
+                    _mergeTowersCoroutine = StartCoroutine(MergeTowers(filteredTowers.Keys.First()));
+                }
+            }
+            else
+            {
+                Debug.LogError("Has three towers on fire place point");
+            }
+        }
+    }
+
+    private IEnumerator MergeTowers(CubeData.CubeColor color)
+    {
+        GameProcessController.Instance.SetActivePlayerInput(false);
+
+        List<TowerPlacePoint> towersPointToMerge = _towerPlacePointsActive.Where(x => x.GetTower() != null && x.GetTower().GetColor() == color).ToList();
+
+        if (towersPointToMerge.Count < 3)
+        {
+            Debug.LogError("Less than 3 towers to merge on fire place point");
+            yield break;
+        }
+
+        float targetOffsetY = 0.3f;
+
+        AudioController.Instance.PlayAudio(AudioController.AudioType.StartMerge);
+
+        foreach (var towerPlacePoint in towersPointToMerge)
+        {
+            Vector3 targetPosition = new Vector3(
+            towerPlacePoint.GetTower().GetTransform().position.x,
+            towerPlacePoint.GetTower().GetTransform().position.y + targetOffsetY,
+            towerPlacePoint.GetTower().GetTransform().position.z);
+
+            StartCoroutine(towerPlacePoint.GetTower().MoveToTargetCoroutine(null, true, targetPosition));
+        }
+
+        yield return new WaitForSeconds(0.4f);
+
+        int countBulletsForAdd = 0;
+
+        AudioController.Instance.PlayAudio(AudioController.AudioType.EndMerge);
+
+        for (int i = 0; i < towersPointToMerge.Count; i++)
+        {
+            if (i == 1) { continue; }
+            Vector3 targetPosition = new Vector3(
+            towersPointToMerge[1].GetTower().GetTransform().position.x,
+            towersPointToMerge[1].GetTower().GetTransform().position.y,
+            towersPointToMerge[1].GetTower().GetTransform().position.z);
+
+            countBulletsForAdd += towersPointToMerge[i].GetTower().GetCountBullets();
+
+            StartCoroutine(towersPointToMerge[i].GetTower().MoveToTargetCoroutine(null, true, targetPosition));
+        }
+
+        yield return new WaitForSeconds(0.1f);
+
+        Debug.Log("<color=green> Merge towers finished</color>");
+        for (int i = 0; i < towersPointToMerge.Count; i++)
+        {
+            if (i == 1)
+            {
+                Vector3 targetPosition = new Vector3(
+                    towersPointToMerge[1].GetTransform().position.x,
+                    towersPointToMerge[1].GetTransform().position.y,
+                    towersPointToMerge[1].GetTransform().position.z
+                );
+
+                StartCoroutine(towersPointToMerge[1].GetTower().MoveToTargetCoroutine(null, false, targetPosition));
+
+                towersPointToMerge[1].GetTower().AddBullets(countBulletsForAdd);
+                towersPointToMerge[1].GetTower().PlayMergeParticles();
+                continue;
+            }
+
+            towersPointToMerge[i].GetTower().ReleaseTower();
+            towersPointToMerge[i].Release();
+        }
+
+        GameProcessController.Instance.SetActivePlayerInput(true);
+        _mergeTowersCoroutine = null;
     }
 
     private TowerData GetTowerData(LineFillData lineFillData)
@@ -170,7 +314,7 @@ public class TowerBase : MonoBehaviour
         return _towerPlacePointsActive.FirstOrDefault(x => x.IsEmpty());
     }
 
-    private Road GetRoadWithMinCountTowers()
+    public Road GetRoadWithMinCountTowers()
     {
         return _roadsActive.OrderBy(x => x.GetCountTowersOnRoad()).First();
     }
@@ -188,6 +332,19 @@ public class TowerBase : MonoBehaviour
     public void ReleaseBullet(Bullet bullet)
     {
         _bulletPool.Release(bullet);
+    }
+
+    public void ChangePositionIndexForFierstTower(Road road)
+    {
+        Tower tower = _towersActive.FirstOrDefault(x => x.GetRoad() == road && x.IsLastPositionOnRoad());
+        if (tower == null)
+        {
+            Debug.LogError("Fierst tower not found");
+            return;
+        }
+
+        tower.SetLastPositionOnTheRoad();
+        road.UpdateAllTowers();
     }
 
     public void ReleaseEffectShower(EffectShower effectShower)
@@ -208,6 +365,9 @@ public class TowerBase : MonoBehaviour
 
     public void Release()
     {
+        _towerPlacePointsActive.Clear();
+        _roadsActive.Clear();
+
         foreach (var place in _towerPlacePointsAll)
         {
             place.Release();

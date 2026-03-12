@@ -9,7 +9,12 @@ public class CubeData
         Green,
         Red,
         Blue,
-        Yellow
+        Yellow,
+        Purple,
+        Orange,
+        Pink,
+        Brown,
+        Turquoise
     }
 
     public CubeColor CubeType;

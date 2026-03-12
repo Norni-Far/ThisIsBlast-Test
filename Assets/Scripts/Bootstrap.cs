@@ -5,6 +5,8 @@ public class Bootstrap : MonoBehaviour
     [SerializeField] private TMPro.TextMeshProUGUI _textFPS;
     [SerializeField] private GameProcessController _gameProcessController;
 
+    [SerializeField] private int _startLevelNumber = 1;
+
     private void Awake()
     {
 
@@ -15,7 +17,7 @@ public class Bootstrap : MonoBehaviour
         CreatePoolObjects();
 
         // Start Game
-        _gameProcessController.StartGame(0);
+        _gameProcessController.StartGame(_startLevelNumber);
     }
 
     private void CreatePoolObjects()

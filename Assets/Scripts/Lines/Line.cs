@@ -103,6 +103,11 @@ public class Line : MonoBehaviour
         return _cubes[index];
     }
 
+    public int GetCubesCount()
+    {
+        return _cubesCount;
+    }
+
     // public Cube GetFierstCubeOrSecond()
     // {
     //     if (_cubes.Count == 0)

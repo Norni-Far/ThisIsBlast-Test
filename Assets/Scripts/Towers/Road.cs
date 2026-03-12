@@ -37,6 +37,7 @@ public class Road : MonoBehaviour
         _towersOnRoad.Remove(tower);
     }
 
+    [Button]
     public void UpdateAllTowers()
     {
         foreach (var tower in _towersOnRoad)

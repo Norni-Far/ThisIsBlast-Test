@@ -7,11 +7,9 @@ using UnityEngine.UI;
 public class ResultsPanel : MonoBehaviour
 {
     public const string TEXT_WIN = "Victory!";
-    public const string TEXT_LOSE = "Defeat!";
     public const string TEXT_NUM_LEVEL = "Level {0}";
 
     public const string TEXT_BUTTON_WIN = "Continue";
-    public const string TEXT_BUTTON_LOSE = "Restart";
 
     [SerializeField] private TMPro.TextMeshProUGUI _textResult;
     [SerializeField] private TMPro.TextMeshProUGUI _textNumLevel;
@@ -35,25 +33,18 @@ public class ResultsPanel : MonoBehaviour
 
     public void SetResult(ResultData resultData)
     {
-        _textResult.text = resultData.IsWin ? TEXT_WIN : TEXT_LOSE;
+        _textResult.text = TEXT_WIN;
         _textNumLevel.text = string.Format(TEXT_NUM_LEVEL, resultData.NumLevel);
         _textCountCoins.text = resultData.CountCoins.ToString();
 
-        _textButtonLevel.text = resultData.IsWin ? TEXT_BUTTON_WIN : TEXT_BUTTON_LOSE;
+        _textButtonLevel.text = TEXT_BUTTON_WIN;
 
         gameObject.SetActive(true);
     }
 
     private void OnButtonNextLevelClick()
     {
-        if (_resultData.IsWin)
-        {
-            GameProcessController.Instance.StartNextLevel();
-        }
-        else
-        {
-            GameProcessController.Instance.RestartGame();
-        }
+        GameProcessController.Instance.StartNextLevel();
     }
 
     public void Hide()
@@ -64,7 +55,6 @@ public class ResultsPanel : MonoBehaviour
     [Serializable]
     public class ResultData
     {
-        public bool IsWin;
         public int NumLevel;
         public int CountCoins;
     }

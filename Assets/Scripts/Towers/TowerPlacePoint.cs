@@ -9,6 +9,11 @@ public class TowerPlacePoint : MonoBehaviour
     [SerializeField] private Transform _transform;
     [SerializeField][ReadOnly] private Tower _tower;
 
+    public Tower GetTower()
+    {
+        return _tower;
+    }
+
     public void SetTower(Tower tower)
     {
         _tower = tower;

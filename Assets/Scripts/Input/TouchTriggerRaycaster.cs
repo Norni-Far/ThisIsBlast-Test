@@ -9,7 +9,7 @@ public class TouchTriggerRaycaster : MonoBehaviour
     [SerializeField] private float _maxDistance = 100f;
     [SerializeField] private LayerMask _layerMask = ~0;
 
-    public bool IsEnabled { get; private set; } = true;
+    public bool IsEnabled { get; set; } = true;
 
     private void Awake()
     {
@@ -61,16 +61,5 @@ public class TouchTriggerRaycaster : MonoBehaviour
                 tower.UpdatePosition();
             }
         }
-
-        // if (!hit.collider.isTrigger)
-        // {
-        //     return;
-        // }
-
-        // hit.collider.gameObject.SendMessage(
-        //     "OnTouchRaycastHit",
-        //     hit.point,
-        //     SendMessageOptions.DontRequireReceiver
-        // );
     }
 }
