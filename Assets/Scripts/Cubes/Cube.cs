@@ -1,97 +1,111 @@
-using System.Collections;
-using NaughtyAttributes;
-using UnityEngine;
-
-public class Cube : MonoBehaviour
+namespace Blast.Core
 {
-    [SerializeField] private Animator _animator;
-    [SerializeField] private MeshRenderer _meshRenderer;
-    [SerializeField] private SOGameData _soGameData;
+    using System.Collections;
+    using NaughtyAttributes;
+    using UnityEngine;
 
-    [Space]
-    [SerializeField][ReadOnly] private CubeData _cubeData;
-
-    private ICubeState _currentState;
-    private Line _line;
-
-    [SerializeField][ReadOnly] private bool _isLive;
-    public bool IsLive { get { return _isLive; } private set { _isLive = value; } }
-
-    public void SetCubeData(CubeData cube)
+    public class Cube : MonoBehaviour
     {
-        _meshRenderer.material = _soGameData.CubeColorsData.Find(x => x.CubeColor == cube.CubeType).Material;
-        _cubeData = cube;
-        SetState(new CubeStateWaiting());
-        IsLive = true;
-    }
+        [SerializeField] private Animator _animator;
+        [SerializeField] private MeshRenderer _meshRenderer;
+        [SerializeField] private SOGameData _soGameData;
 
-    public void SetState(ICubeState state)
-    {
-        _currentState?.Exit();
-        _currentState = state;
-        _currentState?.Enter(this);
-    }
+        [Space]
+        [SerializeField][ReadOnly] private CubeData _cubeData;
 
-    public void UpdateState()
-    {
-        _currentState?.Update();
-    }
+        private ICubeState _currentState;
+        private Line _line;
 
-    public void ExitState()
-    {
-        _currentState?.Exit();
-        _currentState = null;
-    }
+        [SerializeField][ReadOnly] private bool _isLive;
+        public bool IsLive { get { return _isLive; } private set { _isLive = value; } }
 
-    public IEnumerator SetAfterDelayStateCoroutine(float delay, ICubeState state)
-    {
-        yield return new WaitForSeconds(delay);
-        SetState(state);
-    }
+        private LinesController _linesController;
 
-    public void SetLine(Line line)
-    {
-        _line = line;
-    }
+        public readonly CubeStateWaiting _cubeStateWaiting = new CubeStateWaiting();
+        public readonly CubeStateTurnLeft _cubeStateTurnLeft = new CubeStateTurnLeft();
+        public readonly CubeStateTurnRight _cubeStateTurnRight = new CubeStateTurnRight();
+        public readonly CubeStateDead _cubeStateDead = new CubeStateDead();
 
-    public Animator GetAnimator() => _animator;
-    public CubeData.CubeColor GetCubeColor() => _cubeData.CubeType;
-    public Transform GetTransform() => transform;
+        public void SetDependencies(LinesController linesController)
+        {
+            _linesController = linesController;
+        }
 
-    [Button]
-    public void SetTurnLeft()
-    {
-        //IsLive = false;
-        SetState(new CubeStateTurnLeft());
-    }
+        public void SetCubeData(CubeData cube)
+        {
+            _meshRenderer.material = _soGameData.CubeColorsData.Find(x => x.CubeColor == cube.CubeType).Material;
+            _cubeData = cube;
+            SetState(_cubeStateWaiting);
+            IsLive = true;
+        }
 
-    [Button]
-    public void SetTurnRight()
-    {
-        //IsLive = false;
-        SetState(new CubeStateTurnRight());
-    }
+        public void SetState(ICubeState state)
+        {
+            _currentState?.Exit();
+            _currentState = state;
+            _currentState?.Enter(this);
+        }
 
-    [Button]
-    public void SetDeadState()
-    {
-        SetState(new CubeStateDead());
-    }
+        public void UpdateState()
+        {
+            _currentState?.Update();
+        }
 
-    public void SetIsLiveFalse()
-    {
-        IsLive = false;
-    }
+        public void ExitState()
+        {
+            _currentState?.Exit();
+            _currentState = null;
+        }
 
-    public void RemoveFromLine()
-    {
-        _line?.RemoveCube(this);
-    }
+        public IEnumerator SetAfterDelayStateCoroutine(float delay, ICubeState state)
+        {
+            yield return new WaitForSeconds(delay);
+            SetState(state);
+        }
 
-    public void Release()
-    {
-        _line = null;
-        LinesController.Instance.ReleaseCube(this);
+        public void SetLine(Line line)
+        {
+            _line = line;
+        }
+
+        public Animator GetAnimator() => _animator;
+        public CubeData.CubeColor GetCubeColor() => _cubeData.CubeType;
+        public Transform GetTransform() => transform;
+
+        [Button]
+        public void SetTurnLeft()
+        {
+            SetState(_cubeStateTurnLeft);
+        }
+
+        [Button]
+        public void SetTurnRight()
+        {
+            SetState(_cubeStateTurnRight);
+        }
+
+        [Button]
+        public void SetDeadState()
+        {
+            SetState(_cubeStateDead);
+        }
+
+        public void SetIsLiveFalse()
+        {
+            IsLive = false;
+        }
+
+        public void RemoveFromLine()
+        {
+            _line?.RemoveCube(this);
+        }
+
+        public void Release()
+        {
+            _line = null;
+            _linesController.ReleaseCube(this);
+        }
+
     }
 
 }

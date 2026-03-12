@@ -1,44 +1,47 @@
 
-using UnityEngine;
-
-public class FTUEStateFierstMove : IFTUEState
+namespace Blast.Core
 {
-    public const string TEXT_FTUE = "Tap to Select";
+    using UnityEngine;
 
-    private Transform _roundLightTransform;
-    private Transform _armShowerTransform;
-
-    private FTUEController _ftueController;
-
-    public void Enter(FTUEController ftueController, FTUEController.FTUEData ftueData)
+    public class FTUEStateFierstMove : IFTUEState
     {
-        _ftueController = ftueController;
+        public const string TEXT_FTUE = "Tap to Select";
 
-        Debug.Log("<color=purple>FTUEStateFierstMove: Enter</color>");
+        private Transform _roundLightTransform;
+        private Transform _armShowerTransform;
 
-        _ftueController.SetTextFTUE(TEXT_FTUE);
-        _roundLightTransform = _ftueController.GetRoundLightTransform();
-        _armShowerTransform = _ftueController.GetArmShowerTransform();
+        private FTUEController _ftueController;
 
-        Transform towerPos = TowerBase.Instance.GetRoadWithMinCountTowers().GetTransformByIndex(0);
+        public void Enter(FTUEController ftueController, FTUEController.FTUEData ftueData)
+        {
+            _ftueController = ftueController;
 
-        Vector3 uiPosition = IFTUEState.WorldToUIPosition(towerPos, _roundLightTransform);
-        _roundLightTransform.position = uiPosition;
-        _armShowerTransform.position = uiPosition;
+            Debug.Log("<color=purple>FTUEStateFierstMove: Enter</color>");
 
-        _roundLightTransform.gameObject.SetActive(true);
-        _armShowerTransform.gameObject.SetActive(true);
-    }
+            _ftueController.SetTextFTUE(TEXT_FTUE);
+            _roundLightTransform = _ftueController.GetRoundLightTransform();
+            _armShowerTransform = _ftueController.GetArmShowerTransform();
 
-    public void Exit()
-    {
-        _roundLightTransform.gameObject.SetActive(false);
-        _armShowerTransform.gameObject.SetActive(false);
-        _ftueController.SetTextFTUE("");
-    }
+            Transform towerPos = TowerBase.Instance.GetRoadWithMinCountTowers().GetTransformByIndex(0);
 
-    public void Update()
-    {
+            Vector3 uiPosition = IFTUEState.WorldToUIPosition(towerPos, _roundLightTransform);
+            _roundLightTransform.position = uiPosition;
+            _armShowerTransform.position = uiPosition;
 
+            _roundLightTransform.gameObject.SetActive(true);
+            _armShowerTransform.gameObject.SetActive(true);
+        }
+
+        public void Exit()
+        {
+            _roundLightTransform.gameObject.SetActive(false);
+            _armShowerTransform.gameObject.SetActive(false);
+            _ftueController.SetTextFTUE("");
+        }
+
+        public void Update()
+        {
+
+        }
     }
 }

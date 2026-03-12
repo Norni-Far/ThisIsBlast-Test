@@ -1,30 +1,34 @@
-using UnityEngine;
-
-public class FTUEStateEndPanel : IFTUEState
+namespace Blast.Core
 {
+    using UnityEngine;
 
-    private FTUEController _ftueController;
-    private Transform _endPanelTransform;
-
-    public void Enter(FTUEController ftueController, FTUEController.FTUEData ftueData)
+    public class FTUEStateEndPanel : IFTUEState
     {
-        GameProcessController.Instance.SetActivePlayerInput(false);
+        private FTUEController _ftueController;
+        private Transform _endPanelTransform;
 
-        _ftueController = ftueController;
-        _endPanelTransform = ftueController.GetEndPanelTransform();
+        public void Enter(FTUEController ftueController, FTUEController.FTUEData ftueData)
+        {
+            _ftueController = ftueController;
 
-        _endPanelTransform.gameObject.SetActive(true);
-    }
+            _ftueController.GetGameProcessController().SetActivePlayerInput(false);
 
-    public void Exit()
-    {
-        AudioController.Instance.PlayAudio(AudioController.AudioType.Click);
-        GameProcessController.Instance.SetActivePlayerInput(true);
-        _endPanelTransform.gameObject.SetActive(false);
-    }
+            _ftueController = ftueController;
+            _endPanelTransform = ftueController.GetEndPanelTransform();
 
-    public void Update()
-    {
+            _endPanelTransform.gameObject.SetActive(true);
+        }
 
+        public void Exit()
+        {
+            AudioController.Instance.PlayAudio(AudioController.AudioType.Click);
+            _ftueController.GetGameProcessController().SetActivePlayerInput(true);
+            _endPanelTransform.gameObject.SetActive(false);
+        }
+
+        public void Update()
+        {
+
+        }
     }
 }

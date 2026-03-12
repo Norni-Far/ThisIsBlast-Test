@@ -1,19 +1,20 @@
-using UnityEngine;
-
-public class CubeStateWaiting : ICubeState
+namespace Blast.Core
 {
-    public void Enter(Cube cube)
+    public class CubeStateWaiting : ICubeState
     {
+        public void Enter(Cube cube)
+        {
 
-    }
+        }
 
-    public void Exit()
-    {
+        public void Exit()
+        {
 
-    }
+        }
 
-    public void Update()
-    {
+        public void Update()
+        {
 
+        }
     }
 }

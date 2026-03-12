@@ -1,143 +1,157 @@
-using System;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
-
-public class FTUEController : MonoBehaviour
+namespace Blast.Core
 {
-    [SerializeField] private TMPro.TextMeshProUGUI _textFTUE;
-    [SerializeField] private Transform _roundLightTransform;
-    [SerializeField] private Transform _rectangleTransform;
-    [SerializeField] private Transform _armShowerTransform;
-    [SerializeField] private Transform _mergePanelTransform;
-    [SerializeField] private Transform _endPanelTransform;
-    [SerializeField] private List<Button> _skipButtons;
+    using System;
+    using System.Collections.Generic;
+    using UnityEngine;
+    using UnityEngine.UI;
 
-    [Space]
-    [SerializeField] private List<FTUEData> _ftueData;
-
-    private IFTUEState _currentState;
-
-    private void OnEnable()
+    public class FTUEController : MonoBehaviour
     {
-        foreach (var skipButton in _skipButtons)
-        {
-            skipButton.onClick.AddListener(OnSkipButtonClick);
-        }
-    }
+        [SerializeField] private TMPro.TextMeshProUGUI _textFTUE;
+        [SerializeField] private Transform _roundLightTransform;
+        [SerializeField] private Transform _rectangleTransform;
+        [SerializeField] private Transform _armShowerTransform;
+        [SerializeField] private Transform _mergePanelTransform;
+        [SerializeField] private Transform _endPanelTransform;
+        [SerializeField] private List<Button> _skipButtons;
 
-    private void OnDisable()
-    {
-        foreach (var skipButton in _skipButtons)
-        {
-            skipButton.onClick.RemoveListener(OnSkipButtonClick);
-        }
-    }
+        [Space]
+        [SerializeField] private List<FTUEData> _ftueData;
 
-    private readonly Dictionary<int, IFTUEState> _states = new Dictionary<int, IFTUEState>()
+        private GameProcessController _gameProcessController;
+        private IFTUEState _currentState;
+
+        public void SetDependencies(GameProcessController gameProcessController)
+        {
+            _gameProcessController = gameProcessController;
+        }
+
+        private void OnEnable()
+        {
+            foreach (var skipButton in _skipButtons)
+            {
+                skipButton.onClick.AddListener(OnSkipButtonClick);
+            }
+        }
+
+        private void OnDisable()
+        {
+            foreach (var skipButton in _skipButtons)
+            {
+                skipButton.onClick.RemoveListener(OnSkipButtonClick);
+            }
+        }
+
+        private readonly Dictionary<int, IFTUEState> _states = new Dictionary<int, IFTUEState>()
     {
         {1, new FTUEStateFierstMove()},
         {2, new FTUEStateMergeShow()},
         {3, new FTUEStateEndPanel()},
     };
 
-    public void CheckIfNeedToShowFTUE(int levelIndex)
-    {
-        if (_ftueData == null || _ftueData.Count == 0)
+        public void CheckIfNeedToShowFTUE(int levelIndex)
         {
-            Debug.LogError("FTUE data not found");
-            return;
+            if (_ftueData == null || _ftueData.Count == 0)
+            {
+                Debug.LogError("FTUE data not found");
+                return;
+            }
+
+            FTUEData ftueData = _ftueData.Find(x => x.LevelIndex == levelIndex);
+            if (ftueData == null)
+            {
+                return;
+            }
+
+            ftueData.State = GetStateByNumber(ftueData.IndexState);
+
+            SetState(ftueData.State, ftueData);
         }
 
-        FTUEData ftueData = _ftueData.Find(x => x.LevelIndex == levelIndex);
-        if (ftueData == null)
+        public void SetState(IFTUEState state, FTUEData ftueData)
         {
-            return;
+            _currentState?.Exit();
+            _currentState = state;
+            _currentState?.Enter(this, ftueData);
         }
 
-        ftueData.State = GetStateByNumber(ftueData.IndexState);
-
-        SetState(ftueData.State, ftueData);
-    }
-
-    public void SetState(IFTUEState state, FTUEData ftueData)
-    {
-        _currentState?.Exit();
-        _currentState = state;
-        _currentState?.Enter(this, ftueData);
-    }
-
-    public void UpdateState()
-    {
-        _currentState?.Update();
-    }
-
-    public void ExitState()
-    {
-        _currentState?.Exit();
-        _currentState = null;
-    }
-
-    private void OnSkipButtonClick()
-    {
-        ExitState();
-    }
-
-    public IFTUEState GetStateByNumber(int indexState)
-    {
-        if (_states.TryGetValue(indexState, out var state))
+        public void UpdateState()
         {
-            return state;
+            _currentState?.Update();
         }
 
-        Debug.LogError($"State with index {indexState} not found");
-        return null;
-    }
-
-    public void SetTextFTUE(string text)
-    {
-        _textFTUE.text = text;
-
-        if (string.IsNullOrEmpty(text))
+        public void ExitState()
         {
-            _textFTUE.gameObject.SetActive(false);
+            _currentState?.Exit();
+            _currentState = null;
         }
-        else
+
+        private void OnSkipButtonClick()
         {
-            _textFTUE.gameObject.SetActive(true);
+            ExitState();
         }
-    }
 
-    public Transform GetRoundLightTransform()
-    {
-        return _roundLightTransform;
-    }
+        public IFTUEState GetStateByNumber(int indexState)
+        {
+            if (_states.TryGetValue(indexState, out var state))
+            {
+                return state;
+            }
 
-    public Transform GetRectangleTransform()
-    {
-        return _rectangleTransform;
-    }
+            Debug.LogError($"State with index {indexState} not found");
+            return null;
+        }
 
-    public Transform GetMergePanelTransform()
-    {
-        return _mergePanelTransform;
-    }
+        public void SetTextFTUE(string text)
+        {
+            _textFTUE.text = text;
 
-    public Transform GetArmShowerTransform()
-    {
-        return _armShowerTransform;
-    }
+            if (string.IsNullOrEmpty(text))
+            {
+                _textFTUE.gameObject.SetActive(false);
+            }
+            else
+            {
+                _textFTUE.gameObject.SetActive(true);
+            }
+        }
 
-    public Transform GetEndPanelTransform()
-    {
-        return _endPanelTransform;
-    }
+        public Transform GetRoundLightTransform()
+        {
+            return _roundLightTransform;
+        }
 
-    [Serializable]
-    public class FTUEData
-    {
-        public int LevelIndex;
-        public int IndexState;
-        public IFTUEState State;
+        public Transform GetRectangleTransform()
+        {
+            return _rectangleTransform;
+        }
+
+        public Transform GetMergePanelTransform()
+        {
+            return _mergePanelTransform;
+        }
+
+        public Transform GetArmShowerTransform()
+        {
+            return _armShowerTransform;
+        }
+
+        public Transform GetEndPanelTransform()
+        {
+            return _endPanelTransform;
+        }
+
+        public GameProcessController GetGameProcessController()
+        {
+            return _gameProcessController;
+        }
+
+        [Serializable]
+        public class FTUEData
+        {
+            public int LevelIndex;
+            public int IndexState;
+            public IFTUEState State;
+        }
     }
 }

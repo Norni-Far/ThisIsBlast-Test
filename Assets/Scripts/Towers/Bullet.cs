@@ -1,49 +1,52 @@
-using System.Collections;
-using UnityEngine;
-
-public class Bullet : AMoveable
+namespace Blast.Core
 {
-    [SerializeField] private float _offsedFromTarget = 10f;
-    [SerializeField] private TrailRenderer _trailRenderer;
+    using System.Collections;
+    using UnityEngine;
 
-    private Coroutine _moveToTargetCoroutine;
-    public void SetTarget(Cube cube)
+    public class Bullet : AMoveable
     {
-        ClearTrail();
-        if (_moveToTargetCoroutine == null)
+        [SerializeField] private float _offsedFromTarget = 10f;
+        [SerializeField] private TrailRenderer _trailRenderer;
+
+        private Coroutine _moveToTargetCoroutine;
+        public void SetTarget(Cube cube)
         {
-            _moveToTargetCoroutine = StartCoroutine(StartMoveToTargetCoroutine(cube));
-        }
-    }
-
-    private IEnumerator StartMoveToTargetCoroutine(Cube target)
-    {
-        yield return StartCoroutine(MoveToTargetCoroutine(target.GetTransform(), false, null, _offsedFromTarget));
-
-        Debug.Log("Bullet reached target");
-
-        EffectShower effectShower = TowerBase.Instance.GetEffectShower();
-        effectShower.transform.position = new Vector3(target.GetTransform().position.x, target.GetTransform().position.y, target.GetTransform().position.z - 0.4f);
-        effectShower.ShowEffect();
-
-        if (transform.position.x > target.GetTransform().position.x)
-        {
-            target.SetTurnLeft();
-        }
-        else
-        {
-            target.SetTurnRight();
+            ClearTrail();
+            if (_moveToTargetCoroutine == null)
+            {
+                _moveToTargetCoroutine = StartCoroutine(StartMoveToTargetCoroutine(cube));
+            }
         }
 
-        //target.SetDeadState();
-        _moveToTargetCoroutine = null;
-        gameObject.SetActive(false);
-        TowerBase.Instance.ReleaseBullet(this);
-        ClearTrail();
-    }
+        private IEnumerator StartMoveToTargetCoroutine(Cube target)
+        {
+            yield return StartCoroutine(MoveToTargetCoroutine(target.GetTransform(), false, null, _offsedFromTarget));
 
-    private void ClearTrail()
-    {
-        _trailRenderer.Clear();
+            Debug.Log("Bullet reached target");
+
+            EffectShower effectShower = TowerBase.Instance.GetEffectShower();
+            effectShower.transform.position = new Vector3(target.GetTransform().position.x, target.GetTransform().position.y, target.GetTransform().position.z - 0.4f);
+            effectShower.ShowEffect();
+
+            if (transform.position.x > target.GetTransform().position.x)
+            {
+                target.SetTurnLeft();
+            }
+            else
+            {
+                target.SetTurnRight();
+            }
+
+            //target.SetDeadState();
+            _moveToTargetCoroutine = null;
+            gameObject.SetActive(false);
+            TowerBase.Instance.ReleaseBullet(this);
+            ClearTrail();
+        }
+
+        private void ClearTrail()
+        {
+            _trailRenderer.Clear();
+        }
     }
 }

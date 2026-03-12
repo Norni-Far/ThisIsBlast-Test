@@ -1,9 +1,12 @@
-using UnityEngine;
-
-public class AudioPlayerFromAnim : MonoBehaviour
+namespace Blast.Core
 {
-    public void PlayAudio(AudioController.AudioType audioType)
+    using UnityEngine;
+
+    public class AudioPlayerFromAnim : MonoBehaviour
     {
-        AudioController.Instance.PlayAudio(audioType);
+        public void PlayAudio(AudioController.AudioType audioType)
+        {
+            AudioController.Instance.PlayAudio(audioType);
+        }
     }
 }

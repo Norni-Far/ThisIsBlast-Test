@@ -1,131 +1,139 @@
-using System.Collections.Generic;
-using NaughtyAttributes;
-using UnityEngine;
-using UnityEngine.SceneManagement;
-
-public class GameProcessController : MonoBehaviour
+namespace Blast.Core
 {
-    public static GameProcessController Instance;
+    using System.Collections.Generic;
+    using NaughtyAttributes;
+    using UnityEngine;
+    using UnityEngine.SceneManagement;
 
-    public const int COUNT_COINS_FROM_WIN = 12;
-
-    [SerializeField] private TouchTriggerRaycaster _touchTriggerRaycaster;
-    [SerializeField] private UIControleer _uiControleer;
-    [SerializeField] private FTUEController _ftueController;
-    [SerializeField] private ParticleSystem _particleSystemWin;
-
-    [Space]
-    [SerializeField] private SOLevelData _soLevelData;
-    [SerializeField] private LinesController _linesController;
-    [SerializeField] private TowerBase _towerBase;
-
-    [Space]
-    [SerializeField][ReadOnly] private int _currentLevelNum = 0;
-    [SerializeField][ReadOnly] private int _countCoins = 0;
-
-    private void Awake()
+    public class GameProcessController : MonoBehaviour
     {
-        Instance = this;
-    }
+        public const int COUNT_COINS_FROM_WIN = 12;
 
-    private void Start()
-    {
-        AudioController.Instance.PlayAudio(AudioController.AudioType.Click);
-    }
+        [SerializeField] private TouchTriggerRaycaster _touchTriggerRaycaster;
+        [SerializeField] private UIControleer _uiControleer;
+        [SerializeField] private FTUEController _ftueController;
+        [SerializeField] private ParticleSystem _particleSystemWin;
 
-    public void StartGame(int levelNum)
-    {
-        _uiControleer.ShowLoadingPanel();
-        SetActivePlayerInput(false);
+        [Space]
+        [SerializeField] private SOLevelData _soLevelData;
+        [SerializeField] private LinesController _linesController;
+        [SerializeField] private TowerBase _towerBase;
 
-        _currentLevelNum = levelNum;
+        [Space]
+        [SerializeField][ReadOnly] private int _currentLevelNum = 0;
+        [SerializeField][ReadOnly] private int _countCoins = 0;
 
-        LevelData levelData = _soLevelData.LevelData.Find(x => x.LevelNumber == levelNum);
-
-        if (levelData == null)
+        private void Start()
         {
-            Debug.LogError($"Level data not found for level number {levelNum}");
-            return;
+            AudioController.Instance.PlayAudio(AudioController.AudioType.Click);
         }
 
-        _linesController.ReleaseLines();
-        _linesController.FillLinesData(levelData.LineFillData);
-
-        _towerBase.Release();
-        _towerBase.PrepareLevelData(levelData);
-
-        _uiControleer.SetCurrentLevelIndex(levelNum);
-
-        _ftueController.CheckIfNeedToShowFTUE(levelNum);
-
-        _uiControleer.HidePanels();
-
-        SetActivePlayerInput(true);
-        _uiControleer.SignalFinishLoading();
-    }
-
-    public void StartNextLevel()
-    {
-        AudioController.Instance.PlayAudio(AudioController.AudioType.Click);
-        if (_currentLevelNum >= 20)
+        public void SetDependencies()
         {
-            _uiControleer.ShowGameCompleted();
-            return;
+            _ftueController.SetDependencies(this);
+            _linesController.SetDependencies(this);
+            _towerBase.SetDependencies(this, _linesController);
+            _uiControleer.SetDependencies(this);
         }
 
-        StartGame(_currentLevelNum + 1);
-    }
-
-    public void OnEndLevel()
-    {
-        Debug.Log("<color=green> OnEndLevel</color>");
-
-        _particleSystemWin.Play();
-        AudioController.Instance.PlayAudio(AudioController.AudioType.Win);
-        SetActivePlayerInput(false);
-        _uiControleer.ShowResultsPanel(new ResultsPanel.ResultData()
+        public void StartGame(int levelNum)
         {
-            NumLevel = _currentLevelNum,
-            CountCoins = COUNT_COINS_FROM_WIN
-        });
+            _uiControleer.ShowLoadingPanel();
+            SetActivePlayerInput(false);
 
-    }
+            _currentLevelNum = levelNum;
 
-    public void OnSetProgressLevel(int maxCountCubes, int currentCountCubes)
-    {
-        _uiControleer.UpdateProgressLevel(maxCountCubes, currentCountCubes);
-    }
+            LevelData levelData = _soLevelData.LevelData.Find(x => x.LevelNumber == levelNum);
 
-    public void SetActivePlayerInput(bool isActive)
-    {
-        _touchTriggerRaycaster.IsEnabled = isActive;
-    }
+            if (levelData == null)
+            {
+                Debug.LogError($"Level data not found for level number {levelNum}");
+                return;
+            }
 
-    public void OnOutOfSpace()
-    {
-        SetActivePlayerInput(false);
-        _uiControleer.ShowOutOfSpacePanel();
-    }
+            _linesController.ReleaseLines();
+            _linesController.FillLinesData(levelData.LineFillData);
 
-    public void AddCountCoins(int countCoins)
-    {
-        _countCoins += countCoins;
-    }
+            _towerBase.Release();
+            _towerBase.PrepareLevelData(levelData);
 
-    public int GetCountCoins()
-    {
-        return _countCoins;
-    }
+            _uiControleer.SetCurrentLevelIndex(levelNum);
 
-    [Button]
-    public void RestartGame()
-    {
-        AudioController.Instance.PlayAudio(AudioController.AudioType.Click);
-        StartGame(_currentLevelNum);
-    }
+            _ftueController.CheckIfNeedToShowFTUE(levelNum);
 
-    public void RestartApplication()
-    {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            _uiControleer.HidePanels();
+
+            SetActivePlayerInput(true);
+            _uiControleer.SignalFinishLoading();
+        }
+
+        public void StartNextLevel()
+        {
+            AudioController.Instance.PlayAudio(AudioController.AudioType.Click);
+            if (_currentLevelNum >= 20)
+            {
+                _uiControleer.ShowGameCompleted();
+                return;
+            }
+
+            StartGame(_currentLevelNum + 1);
+        }
+
+        public void OnEndLevel()
+        {
+            _particleSystemWin.Play();
+            AudioController.Instance.PlayAudio(AudioController.AudioType.Win);
+            SetActivePlayerInput(false);
+            _uiControleer.ShowResultsPanel(new ResultsPanel.ResultData()
+            {
+                NumLevel = _currentLevelNum,
+                CountCoins = COUNT_COINS_FROM_WIN
+            });
+
+        }
+
+        public void OnSetProgressLevel(int maxCountCubes, int currentCountCubes)
+        {
+            _uiControleer.UpdateProgressLevel(maxCountCubes, currentCountCubes);
+        }
+
+        public void SetActivePlayerInput(bool isActive)
+        {
+            _touchTriggerRaycaster.IsEnabled = isActive;
+        }
+
+        public void OnOutOfSpace()
+        {
+            SetActivePlayerInput(false);
+            _uiControleer.ShowOutOfSpacePanel();
+        }
+
+        public void AddCountCoins(int countCoins)
+        {
+            _countCoins += countCoins;
+        }
+
+        public int GetCountCoins()
+        {
+            return _countCoins;
+        }
+
+        public void CreatePoolObjects()
+        {
+            _linesController.CreatePoolObjects();
+            _towerBase.CreatePoolObjects();
+        }
+
+        [Button]
+        public void RestartGame()
+        {
+            AudioController.Instance.PlayAudio(AudioController.AudioType.Click);
+            StartGame(_currentLevelNum);
+        }
+
+        public void RestartApplication()
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
     }
 }

@@ -1,11 +1,14 @@
-using UnityEngine;
-
-public class AddCoinsFromAnim : MonoBehaviour
+namespace Blast.Core
 {
-    [SerializeField] private UIControleer _uiControleer;
+    using UnityEngine;
 
-    public void OnAddCoins()
+    public class AddCoinsFromAnim : MonoBehaviour
     {
-        _uiControleer.UpdateCountCoinsFromAnim();
+        [SerializeField] private UIControleer _uiControleer;
+
+        public void OnAddCoins()
+        {
+            _uiControleer.UpdateCountCoinsFromAnim();
+        }
     }
 }

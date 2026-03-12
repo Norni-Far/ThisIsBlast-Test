@@ -1,21 +1,24 @@
-using UnityEngine;
-
-public class CubeStateTurnLeft : ICubeState
+namespace Blast.Core
 {
-    private const string TURN_LEFT_ANIMATION_TRIGGER = "leftTurn";
+    using UnityEngine;
 
-    public void Enter(Cube cube)
+    public class CubeStateTurnLeft : ICubeState
     {
-        cube.GetAnimator().SetTrigger(TURN_LEFT_ANIMATION_TRIGGER);
-    }
+        private const string TURN_LEFT_ANIMATION_TRIGGER = "leftTurn";
 
-    public void Exit()
-    {
+        public void Enter(Cube cube)
+        {
+            cube.GetAnimator().SetTrigger(TURN_LEFT_ANIMATION_TRIGGER);
+        }
 
-    }
+        public void Exit()
+        {
 
-    public void Update()
-    {
+        }
 
+        public void Update()
+        {
+
+        }
     }
 }

@@ -1,152 +1,137 @@
-using System.Collections;
-using System.Collections.Generic;
-using NaughtyAttributes;
-using UnityEngine;
-
-public class Line : MonoBehaviour
+namespace Blast.Core
 {
+    using System.Collections;
+    using System.Collections.Generic;
+    using NaughtyAttributes;
+    using UnityEngine;
 
-    [SerializeField] private float _spaceBetweenCubes;
-
-    [Space]
-    [SerializeField] private Transform _lineTransform;
-    [SerializeField] private float _moveLineSpeed;
-    [SerializeField] private int _maxShakeCubes;
-
-    [Space]
-    [Header("Runtime Data")]
-    [SerializeField][ReadOnly] private int _cubesCount;
-    [SerializeField][ReadOnly] private List<Cube> _cubes;
-    [Space]
-    [SerializeField][ReadOnly] private float _startLineYPosition;
-    [SerializeField][ReadOnly] private float _currentLineYPosition;
-
-    private Coroutine _moveLineCoroutine;
-
-    private void Awake()
+    public class Line : MonoBehaviour
     {
-        _startLineYPosition = _lineTransform.position.y;
-        UpdateStartLineYPosition();
-    }
+        [SerializeField] private float _spaceBetweenCubes;
 
-    private void UpdateStartLineYPosition()
-    {
-        _lineTransform.position = new Vector3(_lineTransform.position.x, _startLineYPosition, _lineTransform.position.z);
-        _currentLineYPosition = _startLineYPosition;
-    }
+        [Space]
+        [SerializeField] private Transform _lineTransform;
+        [SerializeField] private float _moveLineSpeed;
+        [SerializeField] private int _maxShakeCubes;
 
-    public void AddCube(Cube cube)
-    {
-        cube.transform.SetParent(_lineTransform);
-        cube.transform.localPosition = Vector3.zero;
-        cube.transform.localPosition = new Vector3(0, _spaceBetweenCubes * _cubesCount, 0);
+        [Space]
+        [Header("Runtime Data")]
+        [SerializeField][ReadOnly] private int _cubesCount;
+        [SerializeField][ReadOnly] private List<Cube> _cubes;
+        [Space]
+        [SerializeField][ReadOnly] private float _startLineYPosition;
+        [SerializeField][ReadOnly] private float _currentLineYPosition;
 
-        _cubesCount++;
-        _cubes.Add(cube);
-        cube.SetLine(this);
-    }
+        private LinesController _linesController;
+        private Coroutine _moveLineCoroutine;
 
-    public void RemoveCube(Cube cube)
-    {
-        _cubes.Remove(cube);
-        _cubesCount--;
-
-        if (_cubesCount < 0)
+        private void Awake()
         {
-            Debug.LogError("Cubes count is less than 0");
-            _cubesCount = 0;
+            _startLineYPosition = _lineTransform.position.y;
+            UpdateStartLineYPosition();
         }
 
-        _currentLineYPosition -= _spaceBetweenCubes;
-
-        if (_moveLineCoroutine == null)
+        public void SetDependencies(LinesController linesController)
         {
-            _moveLineCoroutine = StartCoroutine(MoveLineToTargetPosition());
-        }
-    }
-
-    private IEnumerator MoveLineToTargetPosition()
-    {
-        while (_lineTransform.position.y >= _currentLineYPosition)
-        {
-            _lineTransform.position = new Vector3(_lineTransform.position.x, _lineTransform.position.y - _moveLineSpeed * Time.deltaTime, _lineTransform.position.z);
-            yield return null;
+            _linesController = linesController;
         }
 
-        _lineTransform.position = new Vector3(_lineTransform.position.x, _currentLineYPosition, _lineTransform.position.z);
-
-        SetShakeCubes();
-        _moveLineCoroutine = null;
-    }
-
-    private void SetShakeCubes()
-    {
-        int countShakeCubes = 0;
-        foreach (var cube in _cubes)
+        private void UpdateStartLineYPosition()
         {
-            if (countShakeCubes >= _maxShakeCubes)
+            _lineTransform.position = new Vector3(_lineTransform.position.x, _startLineYPosition, _lineTransform.position.z);
+            _currentLineYPosition = _startLineYPosition;
+        }
+
+        public void AddCube(Cube cube)
+        {
+            cube.transform.SetParent(_lineTransform);
+            cube.transform.localPosition = Vector3.zero;
+            cube.transform.localPosition = new Vector3(0, _spaceBetweenCubes * _cubesCount, 0);
+
+            _cubesCount++;
+            _cubes.Add(cube);
+            cube.SetLine(this);
+        }
+
+        public void RemoveCube(Cube cube)
+        {
+            _cubes.Remove(cube);
+            _cubesCount--;
+
+            if (_cubesCount < 0)
             {
-                break;
+                Debug.LogError("Cubes count is less than 0");
+                _cubesCount = 0;
             }
-            countShakeCubes++;
-            cube.SetState(new CubeStateSmallShake());
-        }
-    }
 
-    public Cube GetCubeByIndex(int index)
-    {
-        if (index < 0 || index >= _cubes.Count)
+            _currentLineYPosition -= _spaceBetweenCubes;
+
+            if (_moveLineCoroutine == null)
+            {
+                _moveLineCoroutine = StartCoroutine(MoveLineToTargetPosition());
+            }
+        }
+
+        private IEnumerator MoveLineToTargetPosition()
         {
-            return null;
+            while (_lineTransform.position.y >= _currentLineYPosition)
+            {
+                _lineTransform.position = new Vector3(_lineTransform.position.x, _lineTransform.position.y - _moveLineSpeed * Time.deltaTime, _lineTransform.position.z);
+                yield return null;
+            }
+
+            _lineTransform.position = new Vector3(_lineTransform.position.x, _currentLineYPosition, _lineTransform.position.z);
+
+            SetShakeCubes();
+            _moveLineCoroutine = null;
         }
 
-        return _cubes[index];
-    }
-
-    public int GetCubesCount()
-    {
-        return _cubesCount;
-    }
-
-    // public Cube GetFierstCubeOrSecond()
-    // {
-    //     if (_cubes.Count == 0)
-    //     {
-    //         return null;
-    //     }
-
-    //     return _cubes[0];
-    // }
-
-    // public Cube GetSecondCube()
-    // {
-    //     if (_cubes.Count < 2)
-    //     {
-    //         return null;
-    //     }
-
-    //     return _cubes[1];
-    // }
-
-
-
-    public void Release()
-    {
-        foreach (var cube in _cubes)
+        private void SetShakeCubes()
         {
-            cube.Release();
+            int countShakeCubes = 0;
+            foreach (var cube in _cubes)
+            {
+                if (countShakeCubes >= _maxShakeCubes)
+                {
+                    break;
+                }
+                countShakeCubes++;
+                cube.SetState(new CubeStateSmallShake());
+            }
         }
-        _cubes.Clear();
 
-        _cubesCount = 0;
-        UpdateStartLineYPosition();
-
-        if (_moveLineCoroutine != null)
+        public Cube GetCubeByIndex(int index)
         {
-            StopCoroutine(_moveLineCoroutine);
+            if (index < 0 || index >= _cubes.Count)
+            {
+                return null;
+            }
+
+            return _cubes[index];
         }
 
-        _moveLineCoroutine = null;
+        public int GetCubesCount()
+        {
+            return _cubesCount;
+        }
 
+        public void Release()
+        {
+            foreach (var cube in _cubes)
+            {
+                cube.Release();
+            }
+            _cubes.Clear();
+
+            _cubesCount = 0;
+            UpdateStartLineYPosition();
+
+            if (_moveLineCoroutine != null)
+            {
+                StopCoroutine(_moveLineCoroutine);
+            }
+
+            _moveLineCoroutine = null;
+        }
     }
 }

@@ -1,20 +1,23 @@
-using System.Collections;
-using UnityEngine;
-
-public class EffectShower : MonoBehaviour
+namespace Blast.Core
 {
-    [SerializeField] private ParticleSystem _particleSystem;
+    using System.Collections;
+    using UnityEngine;
 
-    public void ShowEffect()
+    public class EffectShower : MonoBehaviour
     {
-        StartCoroutine(ShowEffectCoroutine());
-    }
+        [SerializeField] private ParticleSystem _particleSystem;
 
-    public IEnumerator ShowEffectCoroutine()
-    {
-        _particleSystem.Play();
-        yield return new WaitForSeconds(_particleSystem.main.duration);
-        gameObject.SetActive(false);
-        TowerBase.Instance.ReleaseEffectShower(this);
+        public void ShowEffect()
+        {
+            StartCoroutine(ShowEffectCoroutine());
+        }
+
+        public IEnumerator ShowEffectCoroutine()
+        {
+            _particleSystem.Play();
+            yield return new WaitForSeconds(_particleSystem.main.duration);
+            gameObject.SetActive(false);
+            TowerBase.Instance.ReleaseEffectShower(this);
+        }
     }
 }

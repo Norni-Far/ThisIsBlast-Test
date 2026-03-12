@@ -1,50 +1,53 @@
-using UnityEngine;
-
-public class FTUEStateMergeShow : IFTUEState
+namespace Blast.Core
 {
-    private FTUEController _ftueController;
-    private Transform _rectangleTransform;
-    private Transform _armShowerTransform;
+    using UnityEngine;
 
-    public void Enter(FTUEController ftueController, FTUEController.FTUEData ftueData)
+    public class FTUEStateMergeShow : IFTUEState
     {
-        SetRightLineTowers();
+        private FTUEController _ftueController;
+        private Transform _rectangleTransform;
+        private Transform _armShowerTransform;
 
-        _ftueController = ftueController;
+        public void Enter(FTUEController ftueController, FTUEController.FTUEData ftueData)
+        {
+            SetRightLineTowers();
 
-        Debug.Log("<color=purple>FTUEStateFierstMove: Enter</color>");
+            _ftueController = ftueController;
 
-        _ftueController.SetTextFTUE("");
-        _rectangleTransform = _ftueController.GetRectangleTransform();
-        _armShowerTransform = _ftueController.GetArmShowerTransform();
+            Debug.Log("<color=purple>FTUEStateFierstMove: Enter</color>");
 
-        Transform towerPos = TowerBase.Instance.GetRoadWithMinCountTowers().GetTransformByIndex(0);
+            _ftueController.SetTextFTUE("");
+            _rectangleTransform = _ftueController.GetRectangleTransform();
+            _armShowerTransform = _ftueController.GetArmShowerTransform();
 
-        Vector3 uiPosition = IFTUEState.WorldToUIPosition(towerPos, _rectangleTransform);
-        _rectangleTransform.position = uiPosition;
-        _armShowerTransform.position = uiPosition;
+            Transform towerPos = TowerBase.Instance.GetRoadWithMinCountTowers().GetTransformByIndex(0);
 
-        _rectangleTransform.gameObject.SetActive(true);
-        _armShowerTransform.gameObject.SetActive(true);
-        _ftueController.GetMergePanelTransform().gameObject.SetActive(true);
-    }
+            Vector3 uiPosition = IFTUEState.WorldToUIPosition(towerPos, _rectangleTransform);
+            _rectangleTransform.position = uiPosition;
+            _armShowerTransform.position = uiPosition;
 
-    private void SetRightLineTowers()
-    {
-        Road road = TowerBase.Instance.GetRoadWithMinCountTowers();
-        TowerBase.Instance.ChangePositionIndexForFierstTower(road);
-    }
+            _rectangleTransform.gameObject.SetActive(true);
+            _armShowerTransform.gameObject.SetActive(true);
+            _ftueController.GetMergePanelTransform().gameObject.SetActive(true);
+        }
 
-    public void Exit()
-    {
-        _rectangleTransform.gameObject.SetActive(false);
-        _armShowerTransform.gameObject.SetActive(false);
-        _ftueController.GetMergePanelTransform().gameObject.SetActive(false);
-        _ftueController.SetTextFTUE("");
-    }
+        private void SetRightLineTowers()
+        {
+            Road road = TowerBase.Instance.GetRoadWithMinCountTowers();
+            TowerBase.Instance.ChangePositionIndexForFierstTower(road);
+        }
 
-    public void Update()
-    {
+        public void Exit()
+        {
+            _rectangleTransform.gameObject.SetActive(false);
+            _armShowerTransform.gameObject.SetActive(false);
+            _ftueController.GetMergePanelTransform().gameObject.SetActive(false);
+            _ftueController.SetTextFTUE("");
+        }
 
+        public void Update()
+        {
+
+        }
     }
 }

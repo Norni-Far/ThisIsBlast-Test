@@ -1,26 +1,29 @@
-using System;
-using System.Collections;
-using UnityEngine;
-
-public class CubeStateSmallShake : ICubeState
+namespace Blast.Core
 {
-    private const string SMALL_SHAKE_ANIMATION_TRIGGER = "smallShake";
+    using System;
+    using System.Collections;
+    using UnityEngine;
 
-    private Cube _cube;
-    public void Enter(Cube cube)
+    public class CubeStateSmallShake : ICubeState
     {
-        _cube = cube;
-        cube.GetAnimator().SetTrigger(SMALL_SHAKE_ANIMATION_TRIGGER);
-        _cube.StartCoroutine(_cube.SetAfterDelayStateCoroutine(0.5f, new CubeStateWaiting()));
-    }
+        private const string SMALL_SHAKE_ANIMATION_TRIGGER = "smallShake";
 
-    public void Exit()
-    {
+        private Cube _cube;
+        public void Enter(Cube cube)
+        {
+            _cube = cube;
+            cube.GetAnimator().SetTrigger(SMALL_SHAKE_ANIMATION_TRIGGER);
+            _cube.StartCoroutine(_cube.SetAfterDelayStateCoroutine(0.5f, cube._cubeStateWaiting));
+        }
 
-    }
+        public void Exit()
+        {
 
-    public void Update()
-    {
+        }
 
+        public void Update()
+        {
+
+        }
     }
 }

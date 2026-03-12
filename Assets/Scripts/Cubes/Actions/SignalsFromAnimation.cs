@@ -1,26 +1,29 @@
-using UnityEngine;
-
-public class SignalsFromAnimation : MonoBehaviour
+namespace Blast.Core
 {
-    [SerializeField] private Cube _cube;
+    using UnityEngine;
 
-    public void OnRemoveCubeFromLine()
+    public class SignalsFromAnimation : MonoBehaviour
     {
-        _cube.RemoveFromLine();
-    }
+        [SerializeField] private Cube _cube;
 
-    public void OnDestroyCubeFromAnimation()
-    {
-        _cube.Release();
-    }
+        public void OnRemoveCubeFromLine()
+        {
+            _cube.RemoveFromLine();
+        }
 
-    public void OnTurnLeftEnd()
-    {
-        _cube.SetDeadState();
-    }
+        public void OnDestroyCubeFromAnimation()
+        {
+            _cube.Release();
+        }
 
-    public void OnTurnRightEnd()
-    {
-        _cube.SetDeadState();
+        public void OnTurnLeftEnd()
+        {
+            _cube.SetDeadState();
+        }
+
+        public void OnTurnRightEnd()
+        {
+            _cube.SetDeadState();
+        }
     }
 }

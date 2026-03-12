@@ -1,23 +1,26 @@
-using UnityEngine;
-
-public class CubeStateDead : ICubeState
+namespace Blast.Core
 {
-    private const string DEAD_ANIMATION_TRIGGER = "dead";
-    private Cube _cube;
+    using UnityEngine;
 
-    public void Enter(Cube cube)
+    public class CubeStateDead : ICubeState
     {
-        _cube = cube;
-        _cube.GetAnimator().SetTrigger(DEAD_ANIMATION_TRIGGER);
-    }
+        private const string DEAD_ANIMATION_TRIGGER = "dead";
+        private Cube _cube;
 
-    public void Exit()
-    {
+        public void Enter(Cube cube)
+        {
+            _cube = cube;
+            _cube.GetAnimator().SetTrigger(DEAD_ANIMATION_TRIGGER);
+        }
 
-    }
+        public void Exit()
+        {
 
-    public void Update()
-    {
+        }
 
+        public void Update()
+        {
+
+        }
     }
 }
